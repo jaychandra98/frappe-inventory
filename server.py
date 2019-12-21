@@ -1,4 +1,4 @@
-from flask import Flask, abort
+from flask import Flask, abort, render_template
 from flask import request
 from flask import jsonify
 from flask_cors import CORS, cross_origin
@@ -8,8 +8,8 @@ import mysql.connector
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
-    passwd="chandra",
-    database="invent"
+    passwd="root",
+    database="new_schema"
 )
 cur = mydb.cursor()
 
@@ -21,8 +21,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/addProduct', methods=['POST'])
 def addProduct():
     req = request.get_json()
-    cur.execute("INSERT INTO Product(product_name,quantity) values(%s,%s)",
-                (req["name"], int(req["quantity"])))
+    cur.execute("INSERT INTO Product(product_name) values('%s')" % req["name"])
     mydb.commit()
     return getProduct()
 
@@ -35,7 +34,7 @@ def getProduct():
     jsonArr = []
 
     for i in res:
-        jsonArr.append({"id": i[0], "name": i[1], "quantity": i[2]})
+        jsonArr.append({"id": i[0], "name": i[1]})
     jsonRes = {}
     jsonRes["products"] = jsonArr
     return jsonify(jsonRes)
@@ -44,8 +43,8 @@ def getProduct():
 @app.route('/editProduct', methods=['POST'])
 def editProduct():
     req = request.get_json()
-    cur.execute("UPDATE Product set product_name = %s, quantity = %s where product_id = %s",
-                (req["name"], req["quantity"], req["id"]))
+    cur.execute("UPDATE Product set product_name = %s where product_id = %s",
+                (req["name"], req["id"]))
     mydb.commit()
     return getProduct()
 
@@ -73,7 +72,7 @@ def getLocation():
     return jsonify(jsonRes)
 
 
-@app.route('/editLocation', methods=['POST'], endpoint='editLocation')
+@app.route('/editLocation', methods=['POST'])
 def editLocation():
     req = request.get_json()
     cur.execute("UPDATE location set location_name = %s where location_id = %s",
@@ -136,17 +135,19 @@ def importProduct():
 def exportProduct():
     req = request.get_json()
     if checkProduct(req["location"], req["product"], req["quantity"]):
+        print("check ho gya")
         cur.execute("INSERT INTO movement(from_loc, product_id, quantity) values(%s,%s,%s)", (int(
             req["location"]), int(req["product"]), int(req["quantity"])))
         mydb.commit()
         return jsonify(move_getProduct(req["location"]))
+    print("check nai hua")
     return abort(403)
 
 
 @app.route('/move/movement', methods=['POST'])
 def moveProduct():
     req = request.get_json()
-
+    print("mera h?   " + str(req))
     if checkProduct(req["from"], req["product"], req["quantity"]):
         print("mera h?   " + str(req))
         cur.execute("INSERT INTO movement(from_loc, to_loc, product_id, quantity) values(%s,%s,%s,%s)", (int(
@@ -164,10 +165,25 @@ def checkProduct(location, product, quantity):
     # print(list)
     # print(location, product, quantity)
     for i in list:
-        if i["id"] == product and int(i["quantity"]) >= int(quantity):
+        if int(i["id"]) == int(product) and int(i["quantity"]) >= int(quantity):
             print(i["id"], i["quantity"], quantity)
             return True
     return False
+
+
+@app.route('/', methods=['GET'])
+def prod():
+    return render_template("products.html")
+
+
+@app.route('/movements', methods=['GET'])
+def move():
+    return render_template("movement.html")
+
+
+@app.route('/locations', methods=['GET'])
+def loc():
+    return render_template("location.html")
 
 
 if __name__ == '__main__':
