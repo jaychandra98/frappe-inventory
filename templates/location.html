@@ -130,38 +130,30 @@
     }
     function edit_form() {
 
-    console.log(JSON.stringify({name:document.forms[1].name.value,id:document.forms[1].id.value}))
-
     fetch("http://localhost:5000/editLocation", {
         method: "POST",
         headers: headers,
         body:  JSON.stringify({name:document.forms[1].name.value,id:document.forms[1].id.value})
     })
-    .then(async (response)=>{ 
-        res=await response.json()
-        document.getElementById("the_ul_ID").innerHTML = "";
-        createList(document.querySelector("ul"), res.locations);  
+    .then(function(response){ 
+         response.json().then(function(data){
+             console.log(data)
+            document.getElementById("the_ul_ID").innerHTML = "";
+            createList(document.querySelector("ul"), data.locations);  
+         })
+        
     })
-    .then(function(data){ 
-        console.log(data)
-    });
     }
 
+   
     function createList(parent, array) {
-    array.forEach(function (o) {
-        var li = document.createElement("li"),
-            ul;
+        array.forEach(function (o) {
+        var li = document.createElement("li");
         
         li.innerHTML =`<p>Location-name: ${o.name}</p>      <p>Location-id: ${o.id}   </p>`;
         parent.appendChild(li);
-        if (o.nest) {
-            ul = document.createElement("ul");
-            li.appendChild(ul);
-            createList(ul, o.nest);
-            }
         });
     }
-
     
     </script>
 </body>

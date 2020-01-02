@@ -123,6 +123,7 @@
         function viewList(){
             var e = document.getElementById("show");
             var val = e.options[e.selectedIndex].value;
+            
             load(parseInt(val));
         }
         function load(val){
@@ -208,6 +209,7 @@
             .then(async (response)=>{
                 res=await response.json()
                 makeSelect(res.locations);  
+                viewList()
             })
             .then(function(data){
                 console.log(data)
@@ -281,16 +283,11 @@
 
     function createList(parent, array) {
     array.forEach(function (o) {
-        var li = document.createElement("li"),
-            ul;
+        var li = document.createElement("li");
        
         li.innerHTML =`<p>Product-name: ${o.name}   Product-quantity: ${o.quantity}</p>      <p>Product-id: ${o.id}   </p>`;
         parent.appendChild(li);
-        if (o.nest) {
-            ul = document.createElement("ul");
-            li.appendChild(ul);
-            createList(ul, o.nest);
-            }
+     
         });
     }
 
