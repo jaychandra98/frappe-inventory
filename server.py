@@ -50,7 +50,6 @@ def editProduct():
     return getProduct()
 
 
-# Locations
 @app.route('/addLocation', methods=['POST'])
 def addLocation():
     req = request.get_json()
